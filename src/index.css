@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+/* The actual color values --- */
+:root {
+  --brand-bg: #f7fbff;
+  /* --brand-bg-secondary: rgba(247, 241, 241, 0.8); */
+  --brand-text-primary: #102a43;
+  --brand-text-secondary: #7a8a95;
+  --brand-primary: #0b74ff;
+  --brand-secondary: #e6f4ff;
+}
+
+/* Compile-time Tokens: Telling Tailwind these exist --- */
+@theme {
+  --color-brand-bg: var(--brand-bg); /* auto applied*/
+  /* --color-brand-bg-secondary: var(--brand-bg-secondary); */
+  --color-brand-text-primary: var(--brand-text-primary); /* auto applied*/
+  --color-brand-text-secondary: var(--brand-text-secondary);
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-secondary: var(--brand-secondary);
+}
+
+/* ---Global Reset --- */
+@layer base {
+  body {
+    background-color: var(--brand-bg);
+    color: var(--brand-text-primary);
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease;
+  }
+}
+
+::selection {
+  background-color: var(--brand-primary);
+  color: white;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
