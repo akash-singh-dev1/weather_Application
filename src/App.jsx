@@ -5,7 +5,6 @@ import HistoricalWeather from "./pages/HistoricalWeather";
 const App = () => {
   return (
     <div>
-      App
       <Routes>
         <Route path="/" element={<RootLayout />}>
           <Route index element={<CurrentWeather />} />

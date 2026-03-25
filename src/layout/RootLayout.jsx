@@ -1,13 +1,21 @@
 import { Outlet } from "react-router";
+import Navbar from "../components/Navbar";
+import { LocationProvider } from "../context/LocationContext";
+import { TemperatureUnitProvider } from "../context/TemperatureUnitContext";
 const RootLayout = () => {
   return (
     <>
-      <div className="min-h-screen bg-brand-bg">
-        {/* <Navbar /> */}
-        <div className=" mx-auto px-4 py-6">
-          <Outlet />
-        </div>
-      </div>
+      <LocationProvider>
+        <TemperatureUnitProvider>
+          <div className="min-h-screen bg-brand-bg">
+            <Navbar />
+
+            <main className="p-6 mx-auto px-4 ">
+              <Outlet />
+            </main>
+          </div>
+        </TemperatureUnitProvider>
+      </LocationProvider>
     </>
   );
 };
