@@ -6,18 +6,26 @@ export const weatherApi = axios.create({
 });
 
 //function to fetch currentWeather condition based on location intentionally fetching only required data.
-export const fetchCurrentWeather = async (latitude, longitude) => {
+export const fetchCurrentWeather = async (
+  latitude,
+  longitude,
+  selectedDate,
+) => {
   const response = await weatherApi.get("/forecast", {
     params: {
       latitude,
       longitude,
 
-      current: "temperature_2m,relative_humidity_2m,uv_index",
+      start_date: selectedDate,
+      end_date: selectedDate,
 
-      daily: "temperature_2m_max,temperature_2m_min,sunrise,sunset",
+      current: "temperature_2m,relative_humidity_2m,uv_index,precipitation",
+
+      daily:
+        "temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_probability_max,wind_speed_10m_max",
 
       hourly:
-        "temperature_2m,relative_humidity_2m,precipitation,visibility,wind_speed_10m",
+        "temperature_2m,relative_humidity_2m,precipitation,visibility,wind_speed_10m,pressure_msl,uv_index",
 
       timezone: "auto",
     },
