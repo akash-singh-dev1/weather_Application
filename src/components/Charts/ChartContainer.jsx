@@ -1,7 +1,7 @@
 import { ResponsiveContainer } from "recharts";
 const ChartContainer = ({ title, children }) => {
   return (
-    <section className="mt-10">
+    <section className="mt-10 border">
       <h2 className="text-lg font-semibold mb-4 text-center text-brand-primary ">
         {title}
       </h2>

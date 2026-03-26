@@ -1,7 +1,13 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 const LocationContext = createContext();
-// constant for checking for geolocation support.
 const isGeoSupported =
   typeof window !== "undefined" && "geolocation" in navigator;
 
@@ -12,11 +18,13 @@ export const LocationProvider = ({ children }) => {
   );
   const [loading, setLoading] = useState(isGeoSupported);
 
-  useEffect(() => {
-    //  If not supported, we don't even need to run the effect logic
+  //  Create a stable function to request location
+  const getLocation = useCallback(() => {
     if (!isGeoSupported) return;
 
-    //if geolocation supported we get the currentPosition(longitude and latitude of agent)
+    setLoading(true);
+    setError(null); // Reset error state on retry
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setLocation({
@@ -32,14 +40,20 @@ export const LocationProvider = ({ children }) => {
     );
   }, []);
 
-  // This prevents children from re-rendering unless location, loading, or error actually change.
+  //  Initial run on mount
+  useEffect(() => {
+    getLocation();
+  }, [getLocation]);
+
+  // Add getLocation to the context value
   const contextValue = useMemo(
     () => ({
       location,
       loading,
       error,
+      getLocation, // Now consumers can trigger a retry
     }),
-    [location, loading, error],
+    [location, loading, error, getLocation],
   );
 
   return (
@@ -51,8 +65,7 @@ export const LocationProvider = ({ children }) => {
 
 export function useLocationContext() {
   const context = useContext(LocationContext);
-  //  Safety Check: Throw an error if hook is used outside the provider
-  if (context === undefined) {
+  if (!context) {
     throw new Error(
       "useLocationContext must be used within a LocationProvider",
     );

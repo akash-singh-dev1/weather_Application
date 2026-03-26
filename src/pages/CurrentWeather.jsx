@@ -15,6 +15,7 @@ const CurrentWeather = () => {
     location,
     loading: locationLoading,
     error: locationError,
+    getLocation,
   } = useLocationContext();
 
   //from tanstack-query
@@ -59,9 +60,21 @@ const CurrentWeather = () => {
 
   if (locationError)
     return (
-      <p className="text-center text-brand-primary font-bold text-2xl">
-        {locationError}
-      </p>
+      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
+        <p className="text-center text-brand-primary font-bold text-2xl">
+          {locationError}
+        </p>
+        <button
+          onClick={getLocation}
+          className="px-6 py-2 bg-brand-primary text-white rounded-lg hover:bg-opacity-90 transition-all font-semibold shadow-md"
+        >
+          Allow Location Access
+        </button>
+        <p className="text-sm text-gray-500">
+          (You may need to reset site permissions in your browser settings if
+          you clicked "Block")
+        </p>
+      </div>
     );
 
   if (isPending)
@@ -183,9 +196,9 @@ const CurrentWeather = () => {
       <ChartSection selectedDate={selectedDate} />
       {/*end: of section of Charts */}
 
-      <pre className="mt-4 bg-white p-4 rounded">
+      {/* <pre className="mt-4 bg-white p-4 rounded">
         {JSON.stringify(weatherData, null, 2)}
-      </pre>
+      </pre> */}
     </div>
   );
 };

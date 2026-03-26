@@ -2,7 +2,6 @@
 export function getTodayDate() {
   return new Date().toISOString().split("T")[0];
 }
-console.log(getTodayDate());
 
 export function getMinDate() {
   const date = new Date();
