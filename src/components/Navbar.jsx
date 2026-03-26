@@ -4,7 +4,7 @@ import { useTemperatureUnit } from "../context/TemperatureUnitContext";
 const Navbar = () => {
   const { unit, toggleUnit } = useTemperatureUnit();
   return (
-    <header className="bg-white border-b px-6 py-3">
+    <header className="bg-white border-b px-6 py-3 sticky top-0 z-50">
       <div className="flex items-center justify-between">
         {/* Left side */}
         <div className="flex gap-6">

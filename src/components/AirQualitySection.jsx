@@ -43,74 +43,76 @@ const AirQualitySection = ({ selectedDate }) => {
   const aqiLabel = getAQILabel(currentAQI);
 
   return (
-    <section className="mt-8 mx-auto">
-      <h2 className="text-lg font-semibold mb-4 text-center text-brand-primary">
-        Current Air Quality
-      </h2>
-      <div
-        className="
+    <>
+      <section className="mt-8 mx-auto">
+        <h2 className="text-lg font-semibold mb-4 text-center text-brand-primary">
+          Current Air Quality
+        </h2>
+        <div
+          className="
     grid
     grid-cols-1
     sm:grid-cols-2
     lg:grid-cols-3
     gap-4
   "
-      >
-        <WeatherCard
-          title="Air Quality Index"
-          value={airQualityData?.hourly?.european_aqi[timeIndex]}
-          subtitle={aqiLabel}
-          unit={"EAQI"}
-        />
-        <div>
-          <div className="flex justify-center gap-4">
-            <WeatherCard
-              title="Particulate Matter"
-              value={airQualityData?.hourly?.pm10[timeIndex]}
-              subtitle={"pm10"}
-              unit={"μg/m³"}
-            />
-            <WeatherCard
-              title="Particulate Matter"
-              value={airQualityData?.hourly?.pm2_5[timeIndex]}
-              subtitle={"pm2_5"}
-              unit={"μg/m³"}
-            />
-          </div>
-        </div>
-        {/*gases */}
-        <div>
-          <div className="flex justify-center gap-4">
-            <WeatherCard
-              title="carbon_monoxide"
-              value={airQualityData?.hourly?.carbon_monoxide[timeIndex]}
-              unit={"μg/m³"}
-            />
-            <WeatherCard
-              title="carbon_dioxide "
-              value={airQualityData?.hourly?.carbon_dioxide[timeIndex]}
-              unit={"ppm"}
-            />
-          </div>
-        </div>
-        <div>
+        >
+          <WeatherCard
+            title="Air Quality Index"
+            value={airQualityData?.hourly?.european_aqi[timeIndex]}
+            subtitle={aqiLabel}
+            unit={"EAQI"}
+          />
           <div>
             <div className="flex justify-center gap-4">
               <WeatherCard
-                title="nitrogen_dioxide "
-                value={airQualityData?.hourly?.nitrogen_dioxide[timeIndex]}
+                title="Particulate Matter"
+                value={airQualityData?.hourly?.pm10[timeIndex]}
+                subtitle={"pm10"}
                 unit={"μg/m³"}
               />
               <WeatherCard
-                title="sulphur_dioxide "
-                value={airQualityData?.hourly?.sulphur_dioxide[timeIndex]}
+                title="Particulate Matter"
+                value={airQualityData?.hourly?.pm2_5[timeIndex]}
+                subtitle={"pm2_5"}
                 unit={"μg/m³"}
               />
             </div>
           </div>
+          {/*gases */}
+          <div>
+            <div className="flex justify-center gap-4">
+              <WeatherCard
+                title="carbon_monoxide"
+                value={airQualityData?.hourly?.carbon_monoxide[timeIndex]}
+                unit={"μg/m³"}
+              />
+              <WeatherCard
+                title="carbon_dioxide "
+                value={airQualityData?.hourly?.carbon_dioxide[timeIndex]}
+                unit={"ppm"}
+              />
+            </div>
+          </div>
+          <div>
+            <div>
+              <div className="flex justify-center gap-4">
+                <WeatherCard
+                  title="nitrogen_dioxide "
+                  value={airQualityData?.hourly?.nitrogen_dioxide[timeIndex]}
+                  unit={"μg/m³"}
+                />
+                <WeatherCard
+                  title="sulphur_dioxide "
+                  value={airQualityData?.hourly?.sulphur_dioxide[timeIndex]}
+                  unit={"μg/m³"}
+                />
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </>
   );
 };
 export default AirQualitySection;

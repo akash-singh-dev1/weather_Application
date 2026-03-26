@@ -1,5 +1,6 @@
 import { useState } from "react";
 import AirQualitySection from "../components/AirQualitySection";
+import ChartSection from "../components/ChartSection";
 import WeatherCard from "../components/WeatherCard";
 import { useLocationContext } from "../context/LocationContext";
 import { useTemperatureUnit } from "../context/TemperatureUnitContext";
@@ -178,6 +179,9 @@ const CurrentWeather = () => {
       {/*start: of section of AirQuality */}
       <AirQualitySection selectedDate={selectedDate} />
       {/*end: of section of AirQuality */}
+      {/*start: of section of Charts */}
+      <ChartSection selectedDate={selectedDate} />
+      {/*end: of section of Charts */}
 
       <pre className="mt-4 bg-white p-4 rounded">
         {JSON.stringify(weatherData, null, 2)}
