@@ -1,18 +1,17 @@
 import { lazy, Suspense, useMemo, useState } from "react";
-
+import LocationAccessRequired from "../components/LocationAccessRequired";
 import { useLocationContext } from "../context/LocationContext";
-
 import useHistoricalAirQuality from "../hooks/useHistoricalAirQuality";
 import useHistoricalWeather from "../hooks/useHistoricalWeather";
 
+import { groupHourlyToDailyMean } from "../utils/airQualityTransform";
 import {
   getDefaultStartDate,
   getMaxHistoricalDate,
   getMinHistoricalDate,
 } from "../utils/historicalDate";
 
-import { groupHourlyToDailyMean } from "../utils/airQualityTransform";
-//Lazy load the charts (Notice I fixed the casing to 'Charts')
+// Lazy load the charts
 const AirQualityTrendChart = lazy(
   () => import("../components/Charts/HistoricalCharts/AirQualityTrendChart"),
 );
@@ -31,21 +30,23 @@ const WindChart = lazy(
   () => import("../components/Charts/HistoricalCharts/WindChart"),
 );
 
-// Simple placeholder for charts
-const ChartPlaceholder = () => (
-  <div className="h-[300px] w-full bg-gray-100 animate-pulse rounded-xl" />
+// A modern glassmorphic loading placeholder
+const ChartSkeleton = () => (
+  <div className="h-80 w-full bg-white/20 backdrop-blur-md border border-white/40 shadow-sm rounded-3xl animate-pulse flex items-center justify-center">
+    <div className="w-1/3 h-2 bg-brand-text-secondary/20 rounded-full"></div>
+  </div>
+);
+
+const ChartWrapper = ({ children }) => (
+  <div className="bg-white/40 backdrop-blur-xl border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-3xl p-6 transition-all duration-300 hover:shadow-lg">
+    {children}
+  </div>
 );
 
 const HistoricalWeather = () => {
-  const {
-    location,
-    loading: locationLoading,
-    error: locationError,
-    getLocation,
-  } = useLocationContext();
+  const { location, loading: locationLoading } = useLocationContext();
 
   const [startDate, setStartDate] = useState(getDefaultStartDate());
-
   const [endDate, setEndDate] = useState(getMaxHistoricalDate());
 
   const {
@@ -68,101 +69,122 @@ const HistoricalWeather = () => {
 
   const dailyAirQuality = useMemo(() => {
     if (!airQualityData?.hourly) return [];
-
     return groupHourlyToDailyMean(airQualityData?.hourly);
   }, [airQualityData]);
 
-  if (locationLoading)
+  if (locationLoading) {
     return (
-      <p className="text-center text-brand-primary font-bold text-2xl">
-        Detecting location...
-      </p>
-    );
-
-  if (locationError)
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
-        <p className="text-center text-brand-primary font-bold text-2xl">
-          {locationError}
-        </p>
-        <button
-          onClick={getLocation}
-          className="px-6 py-2 bg-brand-primary text-white rounded-lg hover:bg-opacity-90 transition-all font-semibold shadow-md"
-        >
-          Allow Location Access
-        </button>
-        <p className="text-sm text-gray-500">
-          (You may need to reset site permissions in your browser settings if
-          you clicked "Block")
+      <div className="flex h-[60vh] items-center justify-center animate-pulse-soft">
+        <p className="text-brand-text-secondary font-medium tracking-wide text-lg">
+          Locating your sky...
         </p>
       </div>
     );
-  if (isPending)
-    return (
-      <p className="text-center text-brand-primary font-bold text-2xl">
-        Loading historical data...
-      </p>
-    );
+  }
 
-  if (error)
+  if (!location) {
+    return <LocationAccessRequired />;
+  }
+
+  if (isPending) {
     return (
-      <p className="text-center text-brand-primary font-bold text-2xl">
-        {error.message}
-      </p>
+      <div className="flex h-[60vh] items-center justify-center animate-pulse-soft">
+        <p className="text-brand-text-secondary font-medium tracking-wide text-lg">
+          Loading historical timeline...
+        </p>
+      </div>
     );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <p className="text-red-500 font-medium tracking-wide text-lg bg-red-50 px-6 py-3 rounded-2xl">
+          {error.message}
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6">
-      <h1 className="text-xl font-semibold mb-6 text-center text-brand-primary">
-        Historical Weather Trends
-      </h1>
-
-      {/* Date Range Picker */}
-
-      <div className="flex flex-wrap gap-4 mb-8">
-        <div>
-          <label className="block text-sm mb-1">Start Date</label>
-
-          <input
-            type="date"
-            value={startDate}
-            min={getMinHistoricalDate()}
-            max={getMaxHistoricalDate()}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="border px-3 py-2 rounded bg-white"
-          />
+    <div className="space-y-8 pb-12 animate-slide-up">
+      {/* Sleek Header & Date Range Pickers */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-white/40 backdrop-blur-md p-5 sm:p-6 rounded-3xl border border-white/50 shadow-sm">
+        <div className="flex items-center gap-3 ml-2">
+          <div className="w-1.5 h-6 bg-brand-primary rounded-full shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div>
+          <h1 className="text-2xl font-bold tracking-tight text-brand-text-primary">
+            Historical Trends
+          </h1>
         </div>
 
-        <div>
-          <label className="block text-sm mb-1">End Date</label>
+        <div className="flex flex-col sm:flex-row items-center gap-4">
+          <div className="relative group w-full sm:w-auto">
+            <label className="block text-xs font-semibold text-brand-text-secondary uppercase tracking-wider mb-1 ml-1">
+              Start
+            </label>
+            <input
+              type="date"
+              value={startDate}
+              min={getMinHistoricalDate()}
+              max={getMaxHistoricalDate()}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-full sm:w-auto appearance-none bg-white/70 backdrop-blur border border-white/60 hover:border-blue-300 text-brand-text-primary text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-primary/50 transition-all shadow-sm cursor-pointer"
+            />
+          </div>
 
-          <input
-            type="date"
-            value={endDate}
-            min={startDate}
-            max={getMaxHistoricalDate()}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="border px-3 py-2 rounded bg-white"
-          />
+          <div className="hidden sm:block text-brand-text-secondary font-bold mt-5">
+            →
+          </div>
+
+          <div className="relative group w-full sm:w-auto">
+            <label className="block text-xs font-semibold text-brand-text-secondary uppercase tracking-wider mb-1 ml-1">
+              End
+            </label>
+            <input
+              type="date"
+              value={endDate}
+              min={startDate}
+              max={getMaxHistoricalDate()}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-full sm:w-auto appearance-none bg-white/70 backdrop-blur border border-white/60 hover:border-blue-300 text-brand-text-primary text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-primary/50 transition-all shadow-sm cursor-pointer"
+            />
+          </div>
         </div>
       </div>
 
-      {/* Charts */}
+      {/* Charts Grid */}
       <Suspense
         fallback={
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {[...Array(4)].map((_, i) => (
-              <ChartPlaceholder key={i} />
+              <ChartSkeleton key={i} />
             ))}
           </div>
         }
       >
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <HistoricalTemperatureChart dailyData={weatherData?.daily} />
-          <SunCycleChart dailyData={weatherData?.daily} />
-          <PrecipitationChart dailyData={weatherData?.daily} />
-          <WindChart dailyData={weatherData?.daily} />
-          <AirQualityTrendChart dailyData={dailyAirQuality} />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <ChartWrapper>
+            <HistoricalTemperatureChart dailyData={weatherData?.daily} />
+          </ChartWrapper>
+
+          <ChartWrapper>
+            <SunCycleChart dailyData={weatherData?.daily} />
+          </ChartWrapper>
+
+          <ChartWrapper>
+            <PrecipitationChart dailyData={weatherData?.daily} />
+          </ChartWrapper>
+
+          <ChartWrapper>
+            <WindChart dailyData={weatherData?.daily} />
+          </ChartWrapper>
+
+          {/* Spanning full width for Air Quality if desired, or keep in grid */}
+          <div className="col-span-1 lg:col-span-2">
+            <ChartWrapper>
+              <AirQualityTrendChart dailyData={dailyAirQuality} />
+            </ChartWrapper>
+          </div>
         </div>
       </Suspense>
     </div>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import AirQualitySection from "../components/AirQualitySection";
 import ChartSection from "../components/ChartSection";
+import LocationAccessRequired from "../components/LocationAccessRequired";
 import WeatherCard from "../components/WeatherCard";
 import { useLocationContext } from "../context/LocationContext";
 import { useTemperatureUnit } from "../context/TemperatureUnitContext";
@@ -11,28 +12,17 @@ import { formatTime } from "../utils/formateTime";
 
 const CurrentWeather = () => {
   const [selectedDate, setSelectedDate] = useState(getTodayDate());
-  const {
-    location,
-    loading: locationLoading,
-    error: locationError,
-    getLocation,
-  } = useLocationContext();
+  const { location, loading: locationLoading } = useLocationContext();
 
-  //from tanstack-query
-  const {
-    data: weatherData,
-    isPending,
-    error: weatherError,
-  } = useCurrentWeather(location?.latitude, location?.longitude, selectedDate);
+  const { data: weatherData, isPending } = useCurrentWeather(
+    location?.latitude,
+    location?.longitude,
+    selectedDate,
+  );
 
   //what happening is we are getting the air quality data hourly and current time sometimes in minutes that is why iam using this constant so that i can show the air quality data per hour on any date .
   const currentHour = new Date().getHours().toString().padStart(2, "0");
-
-  //  Combine the DATE the user picked with the CURRENT hour
-  // Result: "2026-03-26T14:00"
   const targetTime = `${selectedDate}T${currentHour}:00`;
-
-  //Find this specific hour in the hourly data
   const timeIndex = weatherData?.hourly?.time?.indexOf(targetTime) ?? 0;
 
   const { unit } = useTemperatureUnit();
@@ -45,161 +35,142 @@ const CurrentWeather = () => {
     weatherData?.daily.temperature_2m_max[0],
     unit,
   );
-
   const tempMin = convertTemperature(
     weatherData?.daily.temperature_2m_min[0],
     unit,
   );
 
-  if (locationLoading)
+  if (locationLoading) {
     return (
-      <p className="text-center text-brand-primary font-bold text-2xl">
-        Detecting location...
-      </p>
-    );
-
-  if (locationError)
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
-        <p className="text-center text-brand-primary font-bold text-2xl">
-          {locationError}
-        </p>
-        <button
-          onClick={getLocation}
-          className="px-6 py-2 bg-brand-primary text-white rounded-lg hover:bg-opacity-90 transition-all font-semibold shadow-md"
-        >
-          Allow Location Access
-        </button>
-        <p className="text-sm text-gray-500">
-          (You may need to reset site permissions in your browser settings if
-          you clicked "Block")
+      <div className="flex h-[60vh] items-center justify-center animate-pulse-soft">
+        <p className="text-brand-text-secondary font-medium tracking-wide text-lg">
+          Locating your Location...
         </p>
       </div>
     );
+  }
 
-  if (isPending)
+  // If no location is set
+  if (!location) {
+    return <LocationAccessRequired />;
+  }
+
+  if (isPending) {
     return (
-      <p className="text-center text-brand-primary font-bold text-2xl">
-        Loading weather...
-      </p>
+      <div className="flex h-[60vh] items-center justify-center animate-pulse-soft">
+        <p className="text-brand-text-secondary font-medium tracking-wide text-lg">
+          Syncing Weather...
+        </p>
+      </div>
     );
-  if (weatherError)
-    return (
-      <p className="text-center text-brand-primary font-bold text-2xl">
-        {weatherError.message}
-      </p>
-    );
+  }
 
   return (
-    <div className="p-6">
-      {/*date-picker */}
-      <div className="mb-6">
-        <label className="block text-sm font-medium mb-2">Select Date</label>
-
-        <input
-          type="date"
-          value={selectedDate}
-          min={getMinDate()}
-          max={getMaxDate()}
-          onChange={(e) => setSelectedDate(e.target.value)}
-          className="
-      border
-      rounded
-      px-3
-      py-2
-      bg-white
-    "
-        />
+    <div className="space-y-10 pb-12 animate-slide-up">
+      {/* Sleek Header & Date Picker Control */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/40 backdrop-blur-md p-4 rounded-2xl border border-white/50 shadow-sm">
+        <h1 className="text-2xl font-bold tracking-tight text-brand-text-primary ml-2">
+          Forecast Overview
+        </h1>
+        <div className="relative group">
+          <input
+            type="date"
+            value={selectedDate}
+            min={getMinDate()}
+            max={getMaxDate()}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="w-full sm:w-auto appearance-none bg-white/70 backdrop-blur border border-white/60 hover:border-blue-300 text-brand-text-primary text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-primary/50 transition-all shadow-sm cursor-pointer"
+          />
+        </div>
       </div>
-      {/*start:section for individual weather variables */}
+
       <section>
-        <h2 className="text-lg font-semibold mb-4 text-center text-brand-primary">
-          Current Weather & Summary
-        </h2>
-
-        <div
-          className="
-    grid
-    grid-cols-1
-    sm:grid-cols-2
-    lg:grid-cols-3
-    gap-4
-  "
-        >
-          <WeatherCard
-            title="Temperature"
-            value={temperature}
-            unit={unit === "celsius" ? "°C" : "°F"}
-            subtitle={`Min ${tempMin}° / Max ${tempMax}°`}
-          />
-
-          <WeatherCard
-            title="Precipitation"
-            value={weatherData?.hourly?.precipitation[timeIndex]}
-            unit="mm"
-          />
-
-          <WeatherCard
-            title="Relative Humidity"
-            value={weatherData?.hourly?.relative_humidity_2m[timeIndex]}
-            unit="%"
-          />
-
-          <WeatherCard
-            title="UV Index"
-            value={weatherData?.hourly?.uv_index[timeIndex]}
-          />
-
-          <div>
-            <div className="flex justify-center gap-4 ">
-              <WeatherCard
-                title="Max Wind"
-                value={weatherData?.daily.wind_speed_10m_max[0]}
-                unit="km/h"
-              />
-
-              <WeatherCard
-                title="Precipitation Probability"
-                value={weatherData?.daily.precipitation_probability_max[0]}
-                unit="%"
-              />
-            </div>
+        {/* The Bento Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-auto">
+          {/* Main Hero Card: Temperature */}
+          <div className="col-span-2 row-span-2">
+            <WeatherCard
+              title="Current Temp"
+              value={temperature}
+              unit={unit === "celsius" ? "°C" : "°F"}
+              subtitle={`L: ${tempMin}° · H: ${tempMax}°`}
+              isHero={true}
+            />
           </div>
 
-          <WeatherCard
-            title="Pressure"
-            value={weatherData?.hourly?.pressure_msl[timeIndex]}
-            unit="hPa"
-          />
+          {/* Standard Bento Items */}
+          <div className="col-span-1">
+            <WeatherCard
+              title="Precipitation"
+              value={weatherData?.hourly?.precipitation[timeIndex]}
+              unit="mm"
+            />
+          </div>
 
-          <div>
-            <div className="flex justify-center gap-4">
+          <div className="col-span-1">
+            <WeatherCard
+              title="UV Index"
+              value={weatherData?.hourly?.uv_index[timeIndex]}
+            />
+          </div>
+
+          <div className="col-span-1">
+            <WeatherCard
+              title="Humidity"
+              value={weatherData?.hourly?.relative_humidity_2m[timeIndex]}
+              unit="%"
+            />
+          </div>
+
+          <div className="col-span-1">
+            <WeatherCard
+              title="Wind"
+              value={weatherData?.daily.wind_speed_10m_max[0]}
+              unit="km/h"
+            />
+          </div>
+
+          {/* Combined Sun Cycle Card spanning 2 cols */}
+          <div className="col-span-2 md:col-span-4 lg:col-span-2">
+            <div className="grid grid-cols-2 gap-4 h-full">
               <WeatherCard
                 title="Sunrise"
                 value={formatTime(weatherData?.daily.sunrise[0])}
               />
-
               <WeatherCard
                 title="Sunset"
                 value={formatTime(weatherData?.daily.sunset[0])}
               />
             </div>
           </div>
+
+          <div className="col-span-2 lg:col-span-1">
+            <WeatherCard
+              title="Pressure"
+              value={weatherData?.hourly?.pressure_msl[timeIndex]}
+              unit="hPa"
+            />
+          </div>
+
+          <div className="col-span-2 lg:col-span-1">
+            <WeatherCard
+              title="Precip Prob."
+              value={weatherData?.daily.precipitation_probability_max[0]}
+              unit="%"
+            />
+          </div>
         </div>
       </section>
-      {/*end:section for individual weather variables */}
 
-      {/*start: of section of AirQuality */}
-      <AirQualitySection selectedDate={selectedDate} />
-      {/*end: of section of AirQuality */}
-      {/*start: of section of Charts */}
-      <ChartSection selectedDate={selectedDate} />
-      {/*end: of section of Charts */}
+      <div className="pt-4">
+        <AirQualitySection selectedDate={selectedDate} />
+      </div>
 
-      {/* <pre className="mt-4 bg-white p-4 rounded">
-        {JSON.stringify(weatherData, null, 2)}
-      </pre> */}
+      <div className="pt-4">
+        <ChartSection selectedDate={selectedDate} />
+      </div>
     </div>
   );
 };
+
 export default CurrentWeather;
