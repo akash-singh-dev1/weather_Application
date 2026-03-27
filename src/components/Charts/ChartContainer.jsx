@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { ResponsiveContainer } from "recharts";
 const ChartContainer = ({ title, children }) => {
   return (
@@ -21,4 +22,4 @@ const ChartContainer = ({ title, children }) => {
     </section>
   );
 };
-export default ChartContainer;
+export default memo(ChartContainer);

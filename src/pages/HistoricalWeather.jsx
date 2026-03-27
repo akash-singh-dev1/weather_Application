@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 
 import { useLocationContext } from "../context/LocationContext";
 
@@ -12,12 +12,29 @@ import {
 } from "../utils/historicalDate";
 
 import { groupHourlyToDailyMean } from "../utils/airQualityTransform";
+//Lazy load the charts (Notice I fixed the casing to 'Charts')
+const AirQualityTrendChart = lazy(
+  () => import("../components/Charts/HistoricalCharts/AirQualityTrendChart"),
+);
+const PrecipitationChart = lazy(
+  () =>
+    import("../components/Charts/HistoricalCharts/HistoricalPrecipitationChart"),
+);
+const HistoricalTemperatureChart = lazy(
+  () =>
+    import("../components/Charts/HistoricalCharts/HistoricalTemperatureChart"),
+);
+const SunCycleChart = lazy(
+  () => import("../components/Charts/HistoricalCharts/SunCycleChart"),
+);
+const WindChart = lazy(
+  () => import("../components/Charts/HistoricalCharts/WindChart"),
+);
 
-import AirQualityTrendChart from "../components/Charts/HistoricalCharts/AirQualityTrendChart";
-import PrecipitationChart from "../components/charts/HistoricalCharts/HistoricalPrecipitationChart";
-import HistoricalTemperatureChart from "../components/charts/HistoricalCharts/HistoricalTemperatureChart";
-import SunCycleChart from "../components/charts/HistoricalCharts/SunCycleChart";
-import WindChart from "../components/Charts/HistoricalCharts/WindChart";
+// Simple placeholder for charts
+const ChartPlaceholder = () => (
+  <div className="h-[300px] w-full bg-gray-100 animate-pulse rounded-xl" />
+);
 
 const HistoricalWeather = () => {
   const {
@@ -48,6 +65,13 @@ const HistoricalWeather = () => {
     startDate,
     endDate,
   );
+
+  const dailyAirQuality = useMemo(() => {
+    if (!airQualityData?.hourly) return [];
+
+    return groupHourlyToDailyMean(airQualityData?.hourly);
+  }, [airQualityData]);
+
   if (locationLoading)
     return (
       <p className="text-center text-brand-primary font-bold text-2xl">
@@ -87,8 +111,6 @@ const HistoricalWeather = () => {
       </p>
     );
 
-  const dailyAirQuality = groupHourlyToDailyMean(airQualityData?.hourly);
-
   return (
     <div className="p-6">
       <h1 className="text-xl font-semibold mb-6 text-center text-brand-primary">
@@ -126,17 +148,23 @@ const HistoricalWeather = () => {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <HistoricalTemperatureChart dailyData={weatherData?.daily} />
-
-        <SunCycleChart dailyData={weatherData?.daily} />
-
-        <PrecipitationChart dailyData={weatherData?.daily} />
-
-        <WindChart dailyData={weatherData?.daily} />
-
-        <AirQualityTrendChart dailyData={dailyAirQuality} />
-      </div>
+      <Suspense
+        fallback={
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {[...Array(4)].map((_, i) => (
+              <ChartPlaceholder key={i} />
+            ))}
+          </div>
+        }
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <HistoricalTemperatureChart dailyData={weatherData?.daily} />
+          <SunCycleChart dailyData={weatherData?.daily} />
+          <PrecipitationChart dailyData={weatherData?.daily} />
+          <WindChart dailyData={weatherData?.daily} />
+          <AirQualityTrendChart dailyData={dailyAirQuality} />
+        </div>
+      </Suspense>
     </div>
   );
 };
