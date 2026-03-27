@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { fetchHistoricalAirQuality } from "../api/historicalAirQualityApi";
+import { fetchHistoricalAirQuality } from "../api/HistoricalAirQualityApi";
 
 export default function useHistoricalAirQuality(
   latitude,
